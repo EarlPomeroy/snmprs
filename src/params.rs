@@ -1,7 +1,7 @@
+use crate::snmp::{AuthProtocol, PrivacyProtocol, SNMPVersion};
 use std::io::{Error, ErrorKind};
-use crate::snmp::{SNMPVersion, AuthProtocol, PrivacyProtocol};
 
-pub(crate) struct Params {
+pub struct Params {
     host: String,
     username: String,
     auth_protocol: Option<AuthProtocol>,
@@ -12,7 +12,14 @@ pub(crate) struct Params {
     version: SNMPVersion,
 }
 
-fn new_params_v3(host: &str, username: &str, auth_protocol: AuthProtocol, auth_password: &str, privacy_protocol: PrivacyProtocol, privacy_password: &str) -> Params {
+pub fn new_params_v3(
+    host: &str,
+    username: &str,
+    auth_protocol: AuthProtocol,
+    auth_password: &str,
+    privacy_protocol: PrivacyProtocol,
+    privacy_password: &str,
+) -> Params {
     Params {
         host: host.to_string(),
         username: username.to_string(),
@@ -25,7 +32,7 @@ fn new_params_v3(host: &str, username: &str, auth_protocol: AuthProtocol, auth_p
     }
 }
 
-fn new_params_v2c(host: &str, username: &str, community: &str) -> Params {
+pub fn new_params_v2c(host: &str, username: &str, community: &str) -> Params {
     Params {
         host: host.to_string(),
         username: username.to_string(),
@@ -84,11 +91,13 @@ impl Params {
             return Err(Error::new(ErrorKind::Other, "Wrong version"));
         }
 
-
         Ok(self.community.clone().unwrap())
     }
-}
 
+    pub fn get_version(&self) -> SNMPVersion {
+        self.version
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -160,22 +169,50 @@ mod tests {
         assert_eq!(err.to_string(), "Wrong version");
     }
 
+    #[test]
+    fn test_v2_config_get_version() {
+        let v2 = new_params_v2c("test", "admin", "community");
+
+        assert_eq!(v2.get_version(), SNMPVersion::V2c);
+    }
+
     // V3 tests
     #[test]
     fn test_v3_config_get_host() {
-        let v3 = new_params_v3("test", "admin", AuthProtocol::SHA, "auth_password", PrivacyProtocol::AES, "privacy_password");
+        let v3 = new_params_v3(
+            "test",
+            "admin",
+            AuthProtocol::SHA,
+            "auth_password",
+            PrivacyProtocol::AES,
+            "privacy_password",
+        );
         assert_eq!(v3.get_host(), "test");
     }
 
     #[test]
     fn test_v3_config_get_username() {
-        let v3 = new_params_v3("test", "admin", AuthProtocol::SHA, "auth_password", PrivacyProtocol::AES, "privacy_password");
+        let v3 = new_params_v3(
+            "test",
+            "admin",
+            AuthProtocol::SHA,
+            "auth_password",
+            PrivacyProtocol::AES,
+            "privacy_password",
+        );
         assert_eq!(v3.get_username(), "admin");
     }
 
     #[test]
     fn test_v3_config_get_community() {
-        let v3 = new_params_v3("test", "admin", AuthProtocol::SHA, "auth_password", PrivacyProtocol::AES, "privacy_password");
+        let v3 = new_params_v3(
+            "test",
+            "admin",
+            AuthProtocol::SHA,
+            "auth_password",
+            PrivacyProtocol::AES,
+            "privacy_password",
+        );
 
         let result = v3.get_community();
         assert!(result.is_err());
@@ -186,7 +223,14 @@ mod tests {
 
     #[test]
     fn test_v3_config_get_auth_password() {
-        let v3 = new_params_v3("test", "admin", AuthProtocol::SHA, "auth_password", PrivacyProtocol::AES, "privacy_password");
+        let v3 = new_params_v3(
+            "test",
+            "admin",
+            AuthProtocol::SHA,
+            "auth_password",
+            PrivacyProtocol::AES,
+            "privacy_password",
+        );
 
         let result = v3.get_auth_password();
         assert!(result.is_ok());
@@ -195,7 +239,14 @@ mod tests {
 
     #[test]
     fn test_v3_config_get_auth_protocol() {
-        let v3 = new_params_v3("test", "admin", AuthProtocol::SHA, "auth_password", PrivacyProtocol::AES, "privacy_password");
+        let v3 = new_params_v3(
+            "test",
+            "admin",
+            AuthProtocol::SHA,
+            "auth_password",
+            PrivacyProtocol::AES,
+            "privacy_password",
+        );
 
         let result = v3.get_auth_protocol();
         assert!(result.is_ok());
@@ -204,7 +255,14 @@ mod tests {
 
     #[test]
     fn test_v3_config_get_privacy_password() {
-        let v3 = new_params_v3("test", "admin", AuthProtocol::SHA, "auth_password", PrivacyProtocol::AES, "privacy_password");
+        let v3 = new_params_v3(
+            "test",
+            "admin",
+            AuthProtocol::SHA,
+            "auth_password",
+            PrivacyProtocol::AES,
+            "privacy_password",
+        );
 
         let result = v3.get_privacy_password();
         assert!(result.is_ok());
@@ -213,7 +271,14 @@ mod tests {
 
     #[test]
     fn test_v3_config_get_privacy_protocol() {
-        let v3 = new_params_v3("test", "admin", AuthProtocol::SHA, "auth_password", PrivacyProtocol::AES, "privacy_password");
+        let v3 = new_params_v3(
+            "test",
+            "admin",
+            AuthProtocol::SHA,
+            "auth_password",
+            PrivacyProtocol::AES,
+            "privacy_password",
+        );
 
         let result = v3.get_privacy_protocol();
         assert!(result.is_ok());
@@ -221,13 +286,17 @@ mod tests {
     }
 
     #[test]
-    fn test_create_snmpv3_config() {
-        let v3 = new_params_v3("test", "admin", AuthProtocol::SHA, "auth_password", PrivacyProtocol::AES, "privacy_password");
-        assert_eq!(v3.get_host(), "test");
-        assert_eq!(v3.get_username(), "admin");
-        assert_eq!(v3.get_auth_protocol().unwrap(), AuthProtocol::SHA);
-        assert_eq!(v3.get_auth_password().unwrap(), "auth_password");
-        assert_eq!(v3.get_privacy_protocol().unwrap(), PrivacyProtocol::AES);
-        assert_eq!(v3.get_privacy_password().unwrap(), "privacy_password");
+    fn test_v3_config_get_version() {
+        let v3 = new_params_v3(
+            "test",
+            "admin",
+            AuthProtocol::SHA,
+            "auth_password",
+            PrivacyProtocol::AES,
+            "privacy_password",
+        );
+
+        assert_eq!(v3.get_version(), SNMPVersion::V3);
     }
 }
+
