@@ -1,20 +1,14 @@
 use std::{error::Error, fmt::Display, str::FromStr, u32};
 
-use simple_asn1::{BigUint, OID};
+use simple_asn1::OID;
 
-const MAX_OBJECT_IDENTIFIER_LEN: usize = 128;
+pub const MAX_OBJECT_IDENTIFIER_LEN: usize = 128;
 
 #[derive(Debug)]
 pub(crate) enum ObjectIdentifierError {
     ParseError(String),
     DecodeError(String),
     TooLong(usize),
-}
-
-impl From<std::num::ParseIntError> for ObjectIdentifierError {
-    fn from(value: std::num::ParseIntError) -> Self {
-        ObjectIdentifierError::ParseError(value.to_string())
-    }
 }
 
 impl Display for ObjectIdentifierError {
@@ -80,23 +74,6 @@ impl TryFrom<&OID> for ObjectIdentifier {
             Ok(oid_vec) => Ok(ObjectIdentifier::new(oid_vec)),
             Err(e) => Err(ObjectIdentifierError::DecodeError(e.to_string())),
         }
-    }
-}
-
-impl TryFrom<&ObjectIdentifier> for OID {
-    type Error = ObjectIdentifierError;
-    fn try_from(value: &ObjectIdentifier) -> Result<Self, Self::Error> {
-        if value.length() > MAX_OBJECT_IDENTIFIER_LEN {
-            return Err(ObjectIdentifierError::TooLong(value.length()));
-        };
-
-        let big_vec: Vec<BigUint> = value
-            .get_value()
-            .iter()
-            .map(|&v| BigUint::from(v))
-            .collect();
-
-        Ok(OID::new(big_vec))
     }
 }
 
