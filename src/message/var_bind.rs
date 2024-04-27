@@ -37,7 +37,7 @@ impl ToASN1Block for ObjectValue {
 
     fn to_asn1_block(&self) -> Result<ASN1Block, Self::Error> {
         let asn_block = match self {
-            ObjectValue::Integer(v) => ASN1Block::Integer(4, BigInt::from(*v)),
+            ObjectValue::Integer(v) => ASN1Block::Integer(0, BigInt::from(*v)),
             ObjectValue::String(v) => ASN1Block::UTF8String(v.len(), v.to_string()),
             ObjectValue::ObjectIdentifier(_) => todo!(),
             ObjectValue::IpAddress(_) => todo!(),
@@ -114,7 +114,7 @@ impl ToASN1 for VarBind {
         // encode ObjectIdentifier
         match OID::try_from(&self.name) {
             Ok(oid) => asn_vec.push(ASN1Block::ObjectIdentifier(self.name.length(), oid)),
-            Err(e) => {
+            Err(_) => {
                 return Err(SNMPMessageError::EncodeError(
                     "Error encoding OID".to_string(),
                 ))
@@ -125,7 +125,9 @@ impl ToASN1 for VarBind {
 
         asn_vec.push(value_block);
 
-        Ok(asn_vec)
+        let asn_seq = ASN1Block::Sequence(0, asn_vec);
+
+        Ok(vec![asn_seq])
     }
 }
 

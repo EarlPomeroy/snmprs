@@ -1,7 +1,7 @@
 #[derive(Debug)]
 struct SnmpClient {}
 
-trait SnmpClientTrait {
+trait SnmpClient {
     fn get(&self, oid: &str) -> Result<String, String>;
     fn get_bulk(&self, oid: &str, count: u32) -> Result<Vec<String>, String>;
     fn get_next(&self, oid: &str) -> Result<String, String>;
